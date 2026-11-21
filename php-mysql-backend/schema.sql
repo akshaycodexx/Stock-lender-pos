@@ -1,0 +1,78 @@
+-- StockLedger POS & Inventory - MySQL 8.0+ Schema
+CREATE DATABASE IF NOT EXISTS stockledger_pos CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+USE stockledger_pos;
+
+CREATE TABLE company_settings (
+  id TINYINT PRIMARY KEY DEFAULT 1,
+  company_name VARCHAR(160) NOT NULL,
+  tagline VARCHAR(200) NOT NULL DEFAULT '',
+  gst_number VARCHAR(40) NOT NULL DEFAULT '',
+  address TEXT NOT NULL,
+  phone VARCHAR(40) NOT NULL DEFAULT '',
+  email VARCHAR(120) NOT NULL DEFAULT '',
+  currency_symbol VARCHAR(8) NOT NULL DEFAULT '₹',
+  invoice_footer TEXT NOT NULL,
+  logo_data MEDIUMTEXT,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+CREATE TABLE users (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  username VARCHAR(64) NOT NULL UNIQUE,
+  full_name VARCHAR(120) NOT NULL,
+  role ENUM('admin', 'manager', 'cashier') NOT NULL DEFAULT 'cashier',
+  password_hash VARCHAR(255) NOT NULL,
+  is_active TINYINT(1) NOT NULL DEFAULT 1,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE items (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  name VARCHAR(160) NOT NULL,
+  sku VARCHAR(64) NOT NULL UNIQUE,
+  barcode VARCHAR(64) NOT NULL UNIQUE,
+  category VARCHAR(80) NOT NULL DEFAULT 'General',
+  unit VARCHAR(24) NOT NULL DEFAULT 'pcs',
+  mrp DECIMAL(10, 2) NOT NULL DEFAULT 0.00,
+  selling_price DECIMAL(10, 2) NOT NULL DEFAULT 0.00,
+  buying_price DECIMAL(10, 2) NOT NULL DEFAULT 0.00,
+  tax_rate DECIMAL(5, 2) NOT NULL DEFAULT 0.00,
+  stock_qty INT NOT NULL DEFAULT 0,
+  low_stock_threshold INT NOT NULL DEFAULT 10,
+  image_url MEDIUMTEXT,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+CREATE TABLE bills (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  bill_number VARCHAR(48) NOT NULL UNIQUE,
+  customer_name VARCHAR(120) NOT NULL DEFAULT 'Walk-in Customer',
+  customer_phone VARCHAR(32) NOT NULL DEFAULT '',
+  payment_method ENUM('Cash', 'UPI', 'Card') NOT NULL DEFAULT 'Cash',
+  subtotal DECIMAL(10, 2) NOT NULL,
+  discount_amount DECIMAL(10, 2) NOT NULL DEFAULT 0.00,
+  tax_amount DECIMAL(10, 2) NOT NULL DEFAULT 0.00,
+  total_amount DECIMAL(10, 2) NOT NULL,
+  total_cost DECIMAL(10, 2) NOT NULL DEFAULT 0.00,
+  created_by_id INT NOT NULL,
+  created_by_name VARCHAR(120) NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (created_by_id) REFERENCES users(id)
+);
+
+CREATE TABLE bill_items (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  bill_id INT NOT NULL,
+  item_id INT NOT NULL,
+  item_name VARCHAR(160) NOT NULL,
+  barcode VARCHAR(64) NOT NULL,
+  qty INT NOT NULL,
+  mrp DECIMAL(10, 2) NOT NULL,
+  unit_price DECIMAL(10, 2) NOT NULL,
+  buying_price DECIMAL(10, 2) NOT NULL,
+  tax_rate DECIMAL(5, 2) NOT NULL DEFAULT 0.00,
+  line_total DECIMAL(10, 2) NOT NULL,
+  FOREIGN KEY (bill_id) REFERENCES bills(id) ON DELETE CASCADE,
+  FOREIGN KEY (item_id) REFERENCES items(id)
+);

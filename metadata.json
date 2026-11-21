@@ -1,0 +1,6 @@
+{
+  "name": "StockLedger POS & Inventory",
+  "description": "Full-stack inventory management, auto-barcode generator, POS billing with print invoices, daily sales reports, low-stock alerts, and role-based security.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
